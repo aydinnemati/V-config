@@ -26,6 +26,25 @@ transforms:
           emit(event)
         end
 ```
+- output
+```
+{
+  "appname": "sshd",
+  "facility": "auth",
+  "host": "syslog-sender",
+  "hostname": "syslog-sender",
+  "ip": "10.0.10.187",
+  "message": "Accepted password for a from 10.0.10.187 port 35430 ssh2",
+  "procid": 7385,
+  "severity": "info",
+  "source_ip": "10.0.10.212",
+  "source_type": "syslog",
+  "ssh_port": "35430",
+  "timestamp": "2021-09-06T08:21:40Z",
+  "user": "a"
+}
+
+```
 ## Failed password
 - log
 ```
@@ -52,4 +71,22 @@ transforms:
           end
           emit(event)
         end
+```
+- output
+```
+{
+  "appname": "sshd",
+  "client_ip": "10.0.10.187",
+  "client_user": "a",
+  "facility": "auth",
+  "host": "syslog-sender",
+  "hostname": "syslog-sender",
+  "message": "Failed password for a from 10.0.10.187 port 35460 ssh2",
+  "procid": 7490,
+  "severity": "info",
+  "source_ip": "10.0.10.212",
+  "source_type": "syslog",
+  "ssh_port": "35460",
+  "timestamp": "2021-09-06T08:23:14Z"
+}
 ```

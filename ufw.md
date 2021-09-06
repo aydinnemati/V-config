@@ -37,6 +37,26 @@ transforms:
           emit(event)
         end
 ```
+- output
+```
+{
+  "appname": "kernel",
+  "destination_ip": "ff02:0000:0000:0000:0000:0000:0000:0001",
+  "destination_port": "10001",
+  "facility": "kern",
+  "host": "syslog-sender",
+  "hostname": "syslog-sender",
+  "interface": "enp0s3",
+  "macaddress": "33:33:00:00:00:01:68:d7:9a:10:66:70:86:dd",
+  "message": "[UFW BLOCK] IN=enp0s3 OUT= MAC=33:33:00:00:00:01:68:d7:9a:10:66:70:86:dd SRC=fe80:0000:0000:0000:6ad7:9aff:fe10:6670 DST=ff02:0000:0000:0000:0000:0000:0000:0001 LEN=232 TC=0 HOPLIMIT=1 FLOWLBL=139537 PROTO=UDP SPT=58246 DPT=10001 LEN=192",
+  "protocol": "UDP",
+  "severity": "warning",
+  "source_ip": "fe80:0000:0000:0000:6ad7:9aff:fe10:6670",
+  "source_port": "58246",
+  "source_type": "syslog",
+  "timestamp": "2021-09-06T08:10:37Z"
+}
+```
 
 ##
 - log
