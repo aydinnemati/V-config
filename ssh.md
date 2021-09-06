@@ -1,6 +1,6 @@
 # SSH - Linux
 ## Accepted password
-- log
+- message
 ```
 Accepted password for a from 10.0.10.187 port 34042 ssh2
 ```
@@ -46,7 +46,7 @@ transforms:
 
 ```
 ## Failed password
-- log
+- message
 ```
 Failed password for a from 10.0.10.187 port 34028 ssh2
 ```
