@@ -1,0 +1,20 @@
+{
+  "Description": "S0/G0: working",
+  "command": [
+    "ipmitool",
+    "sel",
+    "list",
+    "-c"
+  ],
+  "date": " Pre-Init ",
+  "event_direction": "Asserted",
+  "host": "sff-203",
+  "message": "5d, Pre-Init ,0000000204,System ACPI Power State #0xd5,S0/G0: working,Asserted",
+  "number_id": "5d",
+  "pid": 6020,
+  "sensor_type": "System ACPI Power State #0xd5",
+  "source_type": "exec",
+  "stream": "stdout",
+  "time": "0000000204",
+  "timestamp": "2021-09-07T11:39:26.148491126Z"
+}
