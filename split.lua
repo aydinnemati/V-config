@@ -7,7 +7,7 @@ function (event, emit)
       return result;
     end
     if event.log.command[2] == "sel" then
-      event.log.aaaaaaaaaaaaasghar = "oskol"
+      event.log.aaaaaaaaaaaaasghar = "asdasd"
     end
     emit(event)
   end
