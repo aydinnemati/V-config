@@ -103,6 +103,16 @@ tran_metrics_ufw:
           emit(event)
         end
 
+  tran_metrics_ufw_geoip:
+    type: geoip
+    inputs:
+      - src
+    database: /path/to/db
+    source: event.log.source_ip
+    target: geoip
+
+
+
   tran_logs:
     type: lua
     inputs:
@@ -133,7 +143,7 @@ tran_metrics_ufw:
   tran_log_to_metric_ufw:
     type: log_to_metric
     inputs:
-      - tran_metrics_ufw
+      - tran_metrics_ufw_geoip
     metrics:
       - type: counter
         field: message
