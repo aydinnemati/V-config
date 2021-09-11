@@ -36,6 +36,7 @@ transforms:
             event.log.ssh_port = portt
             event.log.ip = ipp
             event.log.metric = "1"
+            event.log.go = "ssh"
           end
           if string.find(event.log.message, "Failed password") then
             local userr = string.match(event.log.message, "Failed password for ([^ ]*) from")
@@ -46,6 +47,7 @@ transforms:
             event.log.client_ip = ipp
             event.log.ssh_port = portt
             event.log.metric = "1"
+            event.log.go = "ssh"
           end
           if string.find(event.log.message, "[UFW BLOCK]") then
             local userr = string.match(event.log.message, "Accepted password for ([^ ]*) from")
@@ -64,11 +66,12 @@ transforms:
             event.log.source_port = src_port
             event.log.destination_port = dst_port
             event.log.metric = "1"
+            event.log.go = "ufw"
           end
           emit(event)
         end
 
-  tran_metrics:
+  tran_metrics_ssh:
     type: lua
     inputs:
       - src_syslog
@@ -77,8 +80,25 @@ transforms:
     hooks:
       process: |-
         function (event, emit)
-          if event.log.metric == "1" then
+          if event.log.metric == "1" and event.log.go == "ssh" then
             event.log.metric = nil
+            event.log.go = nil
+          end
+          emit(event)
+        end
+
+tran_metrics_ufw:
+    type: lua
+    inputs:
+      - src_syslog
+      - src_vector
+    version: '2'
+    hooks:
+      process: |-
+        function (event, emit)
+          if event.log.metric == "1" and event.log.go == "ufw" then
+            event.log.metric = nil
+            event.log.go = nil
           end
           emit(event)
         end
@@ -97,56 +117,34 @@ transforms:
           emit(event)
         end
 
-  tran_log_to_metric:
+  tran_log_to_metric_ssh:
     type: log_to_metric
     inputs:
-      - tran_metrics
+      - tran_metrics_ssh
+      - tran_metrics_ufw
     metrics:
-      field: duration
-      name: duration_total
-      namespace: vector
-      tags:
-        host: ${HOSTNAME}
-      type: counter
+      - type: counter
+        field: message
+        name: duration_total
+        namespace: vector
+        tags:
+          host: ${HOSTNAME}
 
-sinks:
-  sink_promotheus:
-    type: prometheus_exporter
+  tran_log_to_metric_ufw:
+    type: log_to_metric
     inputs:
-      - tran_log_to_metric
-    address: 0.0.0.0:9598
+      - tran_metrics_ufw
+    metrics:
+      - type: counter
+        field: message
+        name: duration_total
+        namespace: vector
+        tags:
+          host: ${HOSTNAME}
 
-#  sink_clickhouse:
-#    type: clickhouse
-#    inputs:
-#      - tran_log_to_metric
-#    database: mydatabase
-#    endpoint: http://localhost:8123
-#    table: mytable
-#    compression: gzip
-#    encoding: null
-#    healthcheck: null
-#    skip_unknown_fields: null
-
-#  sink_elastic_search:
-#    type: elasticsearch
-#    inputs:
-#      - tran_log_to_metric
-#    endpoint: http://10.24.32.122:9000
-#    index: vector-%F
-#    mode: normal
-#    pipeline: pipeline-name
-#    compression: none
-#    encoding: null
-#    healthcheck: null
-
-  sink_console_testing:
-    my_sink_id:
-    type: console
-    inputs:
-      - my-source-or-transform-id
-    target: stdout
-    encoding: json # ndjson
+# sink tran_log_to_metric_ssh
+# sink tran_log_to_metric_ufw
+# sink tran_logs
 
 
 ```
