@@ -4,7 +4,7 @@
 ```bash
 transforms:
 
-  tran_cisco:
+  tran_cisco_all:
     type: lua
     inputs:
       - cisco
@@ -128,34 +128,125 @@ transforms:
                 event.log.pri_severity_detail = pri_severity_detail
                 event.log.pri_severity_state = pri_severity_state
                 event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
-
-                if string.find(event.log.message, "%LINK%-3%-UPDOWN:") then
-                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
-                    event.log.mnemonic = "%LINK%-3%-UPDOWN"
-                    event.log.interface = interface
-                end
-                if string.find(event.log.message, "%LINEPROTO%-5%-UPDOWN") then
-                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
-                    event.log.mnemonic = "%LINEPROTO%-5%-UPDOWN"
-                    event.log.interface = interface
-                end
-                if string.find(event.log.message, "%LINK%-5%-CHANGED") then
-                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
-                    event.log.mnemonic = "%LINK%-5%-CHANGED"
-                    event.log.interface = interface
-                end
-                if string.find(event.log.message, "%SYS%-5%-CONFIG_I") then
-                    local user = string.match(event.log.message, "Configured from console by (%w+)")
-                    local shell, user_ip = string.match(event.log.message, "on (%w+) %(([^ ]*)%)")
-                    local description = string.match(event.log.message, "Configured from console by %w+")
-                    event.log.mnemonic = "%SYS%-5%-CONFIG_I"
-                    event.log.description = description
-                    event.log.user_ip = user_ip
-                    event.log.user = user
-                    event.log.shell = shell
-                end
             end
             emit(event)
         end
+  tran_cisco_link:
+    type: lua
+    inputs:
+      - tran_cisco_all
+    version: '2'
+    hooks:
+      process: |-
+        function (event, emit)      
+            if string.find(event.log.message, "%LINK%-3%-UPDOWN:") then
+                local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                event.log.mnemonic = "%LINK%-3%-UPDOWN"
+                event.log.interface = interface
+            end
+            if string.find(event.log.message, "%LINEPROTO%-5%-UPDOWN") then
+                local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                event.log.mnemonic = "%LINEPROTO%-5%-UPDOWN"
+                event.log.interface = interface
+            end
+            if string.find(event.log.message, "%LINK%-5%-CHANGED") then
+                local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                event.log.mnemonic = "%LINK%-5%-CHANGED"
+                event.log.interface = interface
+            end
+            emit(event)
+        end
+  tran_cisco_config:
+    type: lua
+    inputs:
+      - tran_cisco_all
+    version: '2'
+    hooks:
+      process: |-
+        function (event, emit)      
+            if string.find(event.log.message, "%SYS%-5%-CONFIG_I") then
+                local user = string.match(event.log.message, "Configured from console by (%w+)")
+                local shell, user_ip = string.match(event.log.message, "on (%w+) %(([^ ]*)%)")
+                local description = string.match(event.log.message, "Configured from console by %w+")
+                event.log.mnemonic = "%SYS%-5%-CONFIG_I"
+                event.log.description = description
+                event.log.user_ip = user_ip
+                event.log.user = user
+                event.log.shell = shell
+            end
+            emit(event)
+        end
+
+-- sink links to table links
+sinks:
+  sink_cisco_link:
+    type: clickhouse
+    inputs:
+      - tran_cisco_link
+    database: test
+    endpoint: http://10.0.23.222:8123
+    table: cisco_link
+    compression: gzip
+    encoding: default
+    healthcheck: false
+    skip_unknown_fields: false
+
+    -- sink config to table cofig
+  sink_cisco_config:
+    type: clickhouse
+    inputs:
+      - tran_cisco_config
+    database: test
+    endpoint: http://10.0.23.222:8123
+    table: cisco_config
+    compression: gzip
+    encoding: default
+    healthcheck: false
+    skip_unknown_fields: false
+
 ```
-see [cisco](https://www.cisco.com/c/en/us/td/docs/voice_ip_comm/cust_contact/contact_center/ipcc_enterprise/ippcenterprise10_0_1/configuration/UCCE_BK_SCB58691_00_serviceability-best-practices-guide/UCCE_BK_SCB58691_00_serviceability-best-practices-guide_chapter_0100.pdf)
+# Queries to build tables on clickhouse
+## link logs
+
+```sql
+ CREATE TABLE IF NOT EXISTS cisco_link (
+    description  String,
+    host  IPv4,
+    interface  String,
+    message   String,
+    mnemonic  String,
+    pri_facility Int32,
+    pri_facility_detail  String,
+    pri_severity  Int32,
+    pri_severity_detail  String,
+    pri_severity_state  String,
+    record_id  Int32,
+    source_ip  IPv4,
+    source_type String,
+    timestamp  Datetime
+) ENGINE = MergeTree()
+ORDER BY timestamp
+```
+## config logs
+
+```sql
+ CREATE TABLE IF NOT EXISTS cisco_config (
+    description  String,
+    host  IPv4,
+    shell  String,
+    message   String,
+    mnemonic  String,
+    pri_facility Int32,
+    pri_facility_detail  String,
+    pri_severity  Int32,
+    pri_severity_detail  String,
+    pri_severity_state  String,
+    record_id  Int32,
+    source_ip  IPv4,
+    source_type String,
+    user  String,
+    user_ip IPv4,
+    timestamp  Datetime
+) ENGINE = MergeTree()
+ORDER BY timestamp
+```

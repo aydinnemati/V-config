@@ -1,14 +1,16 @@
- LOGS
-- vector
-- config
-```bash
+---
+sources:
+  src_microtik:
+    type: vector
+    acknowledgements: false
+    address: 0.0.0.0:6000
+    version: "1"
 
 transforms:
-
   tran_microtik:
     type: lua
     inputs:
-      - microtik
+      - src_microtik
     version: '2'
     hooks:
       process: |-
@@ -31,11 +33,10 @@ transforms:
             event.log.src_mac = src_mac
             event.log.input = input
             event.log.output = output
+            event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
           end
           emit(event)
         end
-```
-
 
 sinks:
   sink_microtik_nat:
@@ -50,29 +51,9 @@ sinks:
     healthcheck: false
     skip_unknown_fields: false
 
-
-
-
-
-# Queries to build tables on clickhouse
-## NAT logs
-```sql
- CREATE TABLE IF NOT EXISTS microtik_nat (
-    input  String,
-    host  IPv4,
-    lenght Int32,
-    message   String,
-    output  String,
-    private_ip IPv4,
-    private_port  Int32,
-    protocol  String,
-    public_ip  IPv4,
-    public_port  String,
-    security_flag  String,
-    source_ip  IPv4,
-    source_type String,
-    src_mac  String,
-    timestamp  Datetime
-) ENGINE = MergeTree()
-ORDER BY timestamp
-```
+  sink_cisco_3750:
+    type: console
+    inputs:
+      - tran_microtik
+    target: stdout
+    encoding: json
