@@ -17,7 +17,7 @@ transforms:
             local input = string.match(event.log.message, "in:([^ ]*)")
             local output = string.match(event.log.message, "out:([^ ]*),")
             local src_mac = string.match(event.log.message, "%w+:%w+:%w+:%w+:%w+:%w+")
-            local protocol, security_flag = string.match(event.log.message, "proto ([^ ]*) ([^ ]*),")
+            local port, security_flag = string.match(event.log.message, "proto ([^ ]*) ([^ ]*),")
             local private_ip, private_port = string.match(event.log.message, ", ([^ ]*):([^ ]*)->")
             local public_ip, public_port = string.match(event.log.message, "->([^ ]*):([^ ]*),")
             local lenght = string.match(event.log.message, ", len ([^ ]*)")
@@ -26,7 +26,7 @@ transforms:
             event.log.public_port = public_port
             event.log.private_ip = private_ip
             event.log.public_ip = public_ip
-            event.log.protocol = protocol
+            event.log.port = port
             event.log.security_flag = security_flag
             event.log.src_mac = src_mac
             event.log.input = input
@@ -65,7 +65,7 @@ sinks:
     output  String,
     private_ip IPv4,
     private_port  Int32,
-    protocol  String,
+    port  Int32,
     public_ip  IPv4,
     public_port  String,
     security_flag  String,
