@@ -111,92 +111,49 @@ transforms:
                 end
                 return result;
             end
-            if string.find(event.log.message, "%LINK%-3%-UPDOWN:") then
+            if string.find(event.log.message, "%LINK%-3%-UPDOWN:") 
+            or string.find(event.log.message, "%LINEPROTO%-5%-UPDOWN")
+            or string.find(event.log.message, "%LINK%-5%-CHANGED")
+            or string.find(event.log.message, "%SYS%-5%-CONFIG_I") then 
                 local pri, record_id  = string.match(event.log.message,"^<(%d+)>(%d+):")
                 local pri_facility_number = pri//8
                 local pri_severity_number = pri%8
                 local pri_facility = pri_parser_facility(pri_facility_number)
                 local pri_severity = pri_parser_severity(pri_severity_number)
-                local date = string.match(event.log.message,".(%w+ %d+ %d+:%d+:%d+%.%d+)")
-                local interface = string.match(event.log.message, "Interface ([^ ]*),")
                 local description = string.match(event.log.message, ", (%U*)")
-                event.log.pri_severity_detail = pri_severity_detail
-                event.log.pri_severity_state = pri_severity_state
-                event.log.mnemonic = "%LINK%-3%-UPDOWN"
-                event.log.description = description
-                event.log.interface = interface
+                event.log.record_id = record_id
                 event.log.pri_severity = pri_severity_number
                 event.log.pri_facility_detail = pri_facility_detail
                 event.log.pri_facility = pri_facility_number
-                event.log.record_id = record_id
-                event.log.date = date
-                event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
-            end
-            if string.find(event.log.message, "%LINEPROTO%-5%-UPDOWN") then
-                local pri, record_id  = string.match(event.log.message, "^<(%d+)>(%d+):")
-                local pri_facility_number = pri//8
-                local pri_severity_number = pri%8
-                local pri_facility = pri_parser_facility(pri_facility_number)
-                local pri_severity = pri_parser_severity(pri_severity_number)
-                local date = string.match(event.log.message, ".(%w+ %d+ %d+:%d+:%d+%.%d+)")
-                local interface = string.match(event.log.message, "Interface ([^ ]*),")
-                local description = string.match(event.log.message, ", (%U*)")
                 event.log.pri_severity_detail = pri_severity_detail
                 event.log.pri_severity_state = pri_severity_state
-                event.log.mnemonic = "%LINEPROTO%-5%-UPDOWN"
-                event.log.description = description
-                event.log.interface = interface
-                event.log.pri_severity = pri_severity_number
-                event.log.pri_facility_detail = pri_facility_detail
-                event.log.pri_facility = pri_facility_number
-                event.log.record_id = record_id
-                event.log.date = date
                 event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
-            end
-            if string.find(event.log.message, "%LINK%-5%-CHANGED") then
-                local pri, record_id  = string.match(event.log.message, "^<(%d+)>(%d+):")
-                local pri_facility_number = pri//8
-                local pri_severity_number = pri%8
-                local pri_facility = pri_parser_facility(pri_facility_number)
-                local pri_severity = pri_parser_severity(pri_severity_number)
-                local date = string.match(event.log.message, ".(%w+ %d+ %d+:%d+:%d+%.%d+)")
-                local interface = string.match(event.log.message, "Interface ([^ ]*),")
-                local description = string.match(event.log.message, ", (%U*)")
-                event.log.pri_severity_detail = pri_severity_detail
-                event.log.pri_severity_state = pri_severity_state
-                event.log.mnemonic = "%LINK%-5%-CHANGED"
-                event.log.description = description
-                event.log.interface = interface
-                event.log.pri_severity = pri_severity_number
-                event.log.pri_facility_detail = pri_facility_detail
-                event.log.pri_facility = pri_facility_number
-                event.log.record_id = record_id
-                event.log.date = date
-                event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
-            end
-            if string.find(event.log.message, "%SYS%-5%-CONFIG_I") then
-                local pri, record_id  = string.match(event.log.message, "^<(%d+)>(%d+):")
-                local pri_facility_number = pri//8
-                local pri_severity_number = pri%8
-                local pri_facility = pri_parser_facility(pri_facility_number)
-                local pri_severity = pri_parser_severity(pri_severity_number)
-                local date = string.match(event.log.message, ".(%w+ %d+ %d+:%d+:%d+%.%d+)")
-                local user = string.match(event.log.message, "Configured from console by (%w+)")
-                local shell, user_ip = string.match(event.log.message, "on (%w+) %(([^ ]*)%)")
-                local description = string.match(event.log.message, "Configured from console by %w+")
-                event.log.pri_severity_detail = pri_severity_detail
-                event.log.pri_severity_state = pri_severity_state
-                event.log.mnemonic = "%SYS%-5%-CONFIG_I"
-                event.log.description = description
-                event.log.pri_severity = pri_severity_number
-                event.log.pri_facility_detail = pri_facility_detail
-                event.log.pri_facility = pri_facility_number
-                event.log.record_id = record_id
-                event.log.date = date
-                event.log.user_ip = user_ip
-                event.log.user = user
-                event.log.shell = shell
-                event.log.timestamp = os.date('%Y-%m-%d %H:%M:%S', os.time(event.log.timestamp))
+
+                if string.find(event.log.message, "%LINK%-3%-UPDOWN:") then
+                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                    event.log.mnemonic = "%LINK%-3%-UPDOWN"
+                    event.log.interface = interface
+                end
+                if string.find(event.log.message, "%LINEPROTO%-5%-UPDOWN") then
+                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                    event.log.mnemonic = "%LINEPROTO%-5%-UPDOWN"
+                    event.log.interface = interface
+                end
+                if string.find(event.log.message, "%LINK%-5%-CHANGED") then
+                    local interface = string.match(event.log.message, "Interface ([^ ]*),")
+                    event.log.mnemonic = "%LINK%-5%-CHANGED"
+                    event.log.interface = interface
+                end
+                if string.find(event.log.message, "%SYS%-5%-CONFIG_I") then
+                    local user = string.match(event.log.message, "Configured from console by (%w+)")
+                    local shell, user_ip = string.match(event.log.message, "on (%w+) %(([^ ]*)%)")
+                    local description = string.match(event.log.message, "Configured from console by %w+")
+                    event.log.mnemonic = "%SYS%-5%-CONFIG_I"
+                    event.log.description = description
+                    event.log.user_ip = user_ip
+                    event.log.user = user
+                    event.log.shell = shell
+                end
             end
             emit(event)
         end
